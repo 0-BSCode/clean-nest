@@ -1,0 +1,8 @@
+model BooksOnAuthors {
+    author Author @relation(fields: [authorId], references: [id])
+    authorId Int
+    book Book @relation(fields: [bookId], references: [id])
+    bookId Int
+
+    @@id([authorId, bookId])
+}

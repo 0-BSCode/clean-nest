@@ -1,0 +1,7 @@
+model Book {
+    id Int @default(autoincrement()) @id
+    title String
+    description String?
+    price Float
+    authors BooksOnAuthors[]
+}
