@@ -70,6 +70,6 @@
     "testEnvironment": "node"
   },
   "prisma": {
-    "schema": "src/frameworks/data-services/prisma"
+    "schema": "src/frameworks/data-services/prisma/prisma"
   }
 }
