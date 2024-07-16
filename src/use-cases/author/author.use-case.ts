@@ -38,8 +38,9 @@ export class AuthorUseCases {
   }
 
   async createAuthor(createAuthorDto: CreateAuthorDto): Promise<Author> {
+    const author = this.authorFactoryService.createAuthor(createAuthorDto);
+
     try {
-      const author = this.authorFactoryService.createAuthor(createAuthorDto);
       return await this.dataService.authors.create(author);
     } catch (err) {
       if (err instanceof HttpException) {

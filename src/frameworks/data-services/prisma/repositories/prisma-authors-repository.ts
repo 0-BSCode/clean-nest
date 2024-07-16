@@ -19,6 +19,22 @@ export class PrismaAuthorsRepository implements IGenericRepository<Author> {
     return authors;
   }
 
+  async getMany(ids: number[]): Promise<Author[]> {
+    const prismaAuthors = await this.prisma.author.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      include: {
+        books: true,
+      },
+    });
+
+    const authors = prismaAuthors.map(PrismaAuthorMapper.toDomain);
+    return authors;
+  }
+
   async get(id: number): Promise<Author | null> {
     const prismaAuthor = await this.prisma.author.findFirst({
       where: {

@@ -19,6 +19,22 @@ export class PrismaBooksRepository implements IGenericRepository<Book> {
     return books;
   }
 
+  async getMany(ids: number[]): Promise<Book[]> {
+    const prismaBooks = await this.prismaService.book.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      include: {
+        authors: true,
+      },
+    });
+
+    const books = prismaBooks.map(PrismaBookMapper.toDomain);
+    return books;
+  }
+
   async get(id: number): Promise<Book | null> {
     const prismaBook = await this.prismaService.book.findFirst({
       where: {
