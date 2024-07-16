@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { IDataServices } from 'src/core/abstracts';
 import { CreateAuthorDto, UpdateAuthorDto } from 'src/core/dtos/author.dto';
 import { Author } from 'src/core/entities';
@@ -11,25 +11,67 @@ export class AuthorUseCases {
     private readonly authorFactoryService: AuthorFactoryService,
   ) {}
 
-  getAllAuthors(): Promise<Author[]> {
-    return this.dataService.authors.getAll();
+  async getAllAuthors(): Promise<Author[]> {
+    try {
+      return await this.dataService.authors.getAll();
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.message, err.getStatus());
+      }
+    }
   }
 
-  getAuthorById(id: number): Promise<Author | null> {
-    return this.dataService.authors.get(id);
+  async getAuthorById(id: number): Promise<Author> {
+    try {
+      const author = await this.dataService.authors.get(id);
+
+      if (!author) {
+        throw new NotFoundException('Author not found');
+      }
+
+      return author;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.message, err.getStatus());
+      }
+    }
   }
 
-  createAuthor(createAuthorDto: CreateAuthorDto): Promise<Author> {
-    const author = this.authorFactoryService.createAuthor(createAuthorDto);
-    return this.dataService.authors.create(author);
+  async createAuthor(createAuthorDto: CreateAuthorDto): Promise<Author> {
+    try {
+      const author = this.authorFactoryService.createAuthor(createAuthorDto);
+      return await this.dataService.authors.create(author);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.message, err.getStatus());
+      }
+    }
   }
 
-  updateAuthor(id: number, updateAuthorDto: UpdateAuthorDto): Promise<Author> {
-    const author = this.authorFactoryService.updateAuthor(updateAuthorDto);
-    return this.dataService.authors.update(id, author);
+  async updateAuthor(
+    id: number,
+    updateAuthorDto: UpdateAuthorDto,
+  ): Promise<Author> {
+    await this.getAuthorById(id);
+
+    try {
+      const author = this.authorFactoryService.updateAuthor(updateAuthorDto);
+      return await this.dataService.authors.update(id, author);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.message, err.getStatus());
+      }
+    }
   }
 
-  deleteAuthor(id: number): Promise<Author> {
-    return this.dataService.authors.delete(id);
+  async deleteAuthor(id: number): Promise<Author> {
+    await this.getAuthorById(id);
+    try {
+      return await this.dataService.authors.delete(id);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.message, err.getStatus());
+      }
+    }
   }
 }

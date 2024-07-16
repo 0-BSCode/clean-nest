@@ -24,6 +24,9 @@ export class PrismaAuthorsRepository implements IGenericRepository<Author> {
       where: {
         id,
       },
+      include: {
+        books: true,
+      },
     });
 
     if (!prismaAuthor) {
