@@ -77,9 +77,6 @@ export class BookUseCases {
       updateBookDto,
     );
 
-    console.log('BOOK DATA');
-    console.log(bookData);
-
     try {
       return await this.dataServices.books.update(id, bookData);
     } catch (err) {
