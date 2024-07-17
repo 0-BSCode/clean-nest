@@ -3,6 +3,7 @@ import { IGenericRepository } from 'src/core/abstracts';
 import { Book } from 'src/core/entities';
 import { PrismaService } from '../prisma.service';
 import { PrismaBookMapper } from '../mappers/prisma-book-mapper';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrismaBooksRepository implements IGenericRepository<Book> {
@@ -11,7 +12,11 @@ export class PrismaBooksRepository implements IGenericRepository<Book> {
   async getAll(): Promise<Book[]> {
     const prismaBooks = await this.prismaService.book.findMany({
       include: {
-        authors: true,
+        authors: {
+          include: {
+            author: true,
+          },
+        },
       },
     });
 
@@ -27,7 +32,11 @@ export class PrismaBooksRepository implements IGenericRepository<Book> {
         },
       },
       include: {
-        authors: true,
+        authors: {
+          include: {
+            author: true,
+          },
+        },
       },
     });
 
@@ -41,7 +50,11 @@ export class PrismaBooksRepository implements IGenericRepository<Book> {
         id,
       },
       include: {
-        authors: true,
+        authors: {
+          include: {
+            author: true,
+          },
+        },
       },
     });
 
@@ -55,9 +68,34 @@ export class PrismaBooksRepository implements IGenericRepository<Book> {
 
   async create(item: Book): Promise<Book> {
     const prismaBookData = PrismaBookMapper.toPrisma(item);
+    // Since relationship is explicit, extra layer of nesting is needed to create connection
+    // TODO: Integrate into prismaBookData so no extra logic here
+    const authorConnections = item.authors.map((author) => {
+      return {
+        author: {
+          connect: {
+            id: author.id,
+          },
+        },
+      } as Prisma.BooksOnAuthorsCreateInput;
+    });
 
     const prismaBook = await this.prismaService.book.create({
-      data: prismaBookData,
+      data: {
+        title: prismaBookData.title,
+        description: prismaBookData.description,
+        price: prismaBookData.price,
+        authors: {
+          create: authorConnections,
+        },
+      },
+      include: {
+        authors: {
+          select: {
+            author: true,
+          },
+        },
+      },
     });
 
     const book = PrismaBookMapper.toDomain(prismaBook);
@@ -66,13 +104,47 @@ export class PrismaBooksRepository implements IGenericRepository<Book> {
 
   async update(id: number, item: Book): Promise<Book> {
     const prismaBookData = PrismaBookMapper.toPrisma(item);
+    // TODO: Integrate into prismaBookData so no extra logic here
+    const authorConnections = item.authors.map((author) => ({
+      authorId: author.id,
+      bookId: id,
+    }));
 
-    const prismaBook = await this.prismaService.book.update({
-      where: {
-        id,
-      },
-      data: prismaBookData,
-    });
+    const [
+      _updatedBookData,
+      _deletedConnections,
+      _createdConnections,
+      prismaBook,
+    ] = await this.prismaService.$transaction([
+      this.prismaService.book.update({
+        where: {
+          id,
+        },
+        data: {
+          title: prismaBookData.title,
+          description: prismaBookData.description,
+          price: prismaBookData.price,
+        },
+      }),
+      this.prismaService.booksOnAuthors.deleteMany({
+        where: {
+          bookId: id,
+        },
+      }),
+      this.prismaService.booksOnAuthors.createMany({
+        data: authorConnections,
+      }),
+      this.prismaService.book.findFirst({
+        where: { id },
+        include: {
+          authors: {
+            include: {
+              author: true,
+            },
+          },
+        },
+      }),
+    ]);
 
     const book = PrismaBookMapper.toDomain(prismaBook);
     return book;

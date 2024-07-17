@@ -57,7 +57,7 @@ export class BookUseCases {
   }
 
   async updateBook(id: number, updateBookDto: UpdateBookDto): Promise<Book> {
-    await this.getBookById(id);
+    const bookEntity = await this.getBookById(id);
 
     let authors: Author[] = [];
     if (updateBookDto.authorIds) {
@@ -68,13 +68,25 @@ export class BookUseCases {
       if (authors.length !== updateBookDto.authorIds.length) {
         throw new NotFoundException('One or more authors not found');
       }
+
+      bookEntity.authors = authors;
     }
 
-    const book = this.bookFactoryService.updateBook(updateBookDto, authors);
+    const bookData = this.bookFactoryService.updateBook(
+      bookEntity,
+      updateBookDto,
+    );
+
+    console.log('BOOK DATA');
+    console.log(bookData);
 
     try {
-      return await this.dataServices.books.update(id, book);
-    } catch (err) {}
+      return await this.dataServices.books.update(id, bookData);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw new HttpException(err.message, err.getStatus());
+      }
+    }
   }
 
   async deleteBook(id: number): Promise<Book> {

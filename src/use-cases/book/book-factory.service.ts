@@ -13,12 +13,10 @@ export class BookFactoryService {
     return book;
   }
 
-  updateBook(dto: UpdateBookDto, authors: Author[]): Book {
-    const book = new Book();
-    book.title = dto.title;
-    book.description = dto.description;
-    book.price = dto.price;
-    book.authors = authors;
-    return book;
+  updateBook(bookEntity: Book, updateBookDto: UpdateBookDto): Book {
+    return {
+      ...bookEntity,
+      ...updateBookDto,
+    };
   }
 }

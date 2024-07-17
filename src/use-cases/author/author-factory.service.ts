@@ -13,10 +13,10 @@ export class AuthorFactoryService {
     return author;
   }
 
-  updateAuthor(dto: UpdateAuthorDto): Author {
-    const author = new Author();
-    author.name = dto.name;
-    author.description = dto.description;
-    return author;
+  updateAuthor(authorEntity: Author, dto: UpdateAuthorDto): Author {
+    return {
+      ...authorEntity,
+      ...dto,
+    };
   }
 }

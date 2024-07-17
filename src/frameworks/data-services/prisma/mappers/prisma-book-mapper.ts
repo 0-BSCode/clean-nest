@@ -1,5 +1,5 @@
 import { Book as PrismaBook } from '@prisma/client';
-import { Book } from 'src/core/entities';
+import { Author, Book } from 'src/core/entities';
 
 export class PrismaBookMapper {
   private constructor() {
@@ -15,14 +15,19 @@ export class PrismaBookMapper {
     };
   }
 
-  public static toDomain(prismaBook: PrismaBook): Book {
+  public static toDomain(
+    prismaBook: PrismaBook & { authors?: { author: Omit<Author, 'books'> }[] },
+  ): Book {
     return {
       id: prismaBook.id,
       title: prismaBook.title,
       description: prismaBook.description,
       price: prismaBook.price,
-      // TODO: Extract authors from prismaBook
-      authors: [],
+      authors:
+        prismaBook.authors?.map((author) => ({
+          ...author.author,
+          books: [],
+        })) || [],
     };
   }
 }

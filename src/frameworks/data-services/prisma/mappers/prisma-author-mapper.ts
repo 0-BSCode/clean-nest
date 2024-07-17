@@ -1,4 +1,4 @@
-import { Author } from 'src/core/entities';
+import { Author, Book } from 'src/core/entities';
 import { Author as PrismaAuthor } from '@prisma/client';
 
 export class PrismaAuthorMapper {
@@ -14,13 +14,18 @@ export class PrismaAuthorMapper {
     };
   }
 
-  public static toDomain(prismaAuthor: PrismaAuthor): Author {
+  public static toDomain(
+    prismaAuthor: PrismaAuthor & { books?: { book: Omit<Book, 'authors'> }[] },
+  ): Author {
     return {
       id: prismaAuthor.id,
       name: prismaAuthor.name,
       description: prismaAuthor.description,
-      // TODO: Get books from PrismaAuthor
-      books: [],
+      books:
+        prismaAuthor.books?.map((book) => ({
+          ...book.book,
+          authors: [],
+        })) || [],
     };
   }
 }

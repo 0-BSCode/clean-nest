@@ -11,7 +11,11 @@ export class PrismaAuthorsRepository implements IGenericRepository<Author> {
   async getAll(): Promise<Author[]> {
     const prismaAuthors = await this.prisma.author.findMany({
       include: {
-        books: true,
+        books: {
+          include: {
+            book: true,
+          },
+        },
       },
     });
 
@@ -27,7 +31,11 @@ export class PrismaAuthorsRepository implements IGenericRepository<Author> {
         },
       },
       include: {
-        books: true,
+        books: {
+          include: {
+            book: true,
+          },
+        },
       },
     });
 
@@ -41,7 +49,11 @@ export class PrismaAuthorsRepository implements IGenericRepository<Author> {
         id,
       },
       include: {
-        books: true,
+        books: {
+          include: {
+            book: true,
+          },
+        },
       },
     });
 
@@ -71,6 +83,13 @@ export class PrismaAuthorsRepository implements IGenericRepository<Author> {
         id,
       },
       data: prismaAuthorData,
+      include: {
+        books: {
+          include: {
+            book: true,
+          },
+        },
+      },
     });
 
     const author = PrismaAuthorMapper.toDomain(prismaAuthor);
@@ -81,6 +100,13 @@ export class PrismaAuthorsRepository implements IGenericRepository<Author> {
     const prismaAuthor = await this.prisma.author.delete({
       where: {
         id,
+      },
+      include: {
+        books: {
+          include: {
+            book: true,
+          },
+        },
       },
     });
 

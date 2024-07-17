@@ -53,10 +53,13 @@ export class AuthorUseCases {
     id: number,
     updateAuthorDto: UpdateAuthorDto,
   ): Promise<Author> {
-    await this.getAuthorById(id);
+    const authorEntity = await this.getAuthorById(id);
 
     try {
-      const author = this.authorFactoryService.updateAuthor(updateAuthorDto);
+      const author = this.authorFactoryService.updateAuthor(
+        authorEntity,
+        updateAuthorDto,
+      );
       return await this.dataService.authors.update(id, author);
     } catch (err) {
       if (err instanceof HttpException) {
